@@ -1,13 +1,23 @@
 /*
-	Multiverse by HTML5 UP
+	Strata by HTML5 UP
 	html5up.net | @n33co
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
+	var settings = {
+
+		// Parallax background effect?
+			parallax: true,
+
+		// Parallax factor (lower = more intense, higher = less intense).
+			parallaxFactor: 20
+
+	};
+
 	skel.breakpoints({
-		xlarge: '(max-width: 1680px)',
+		xlarge: '(max-width: 1800px)',
 		large: '(max-width: 1280px)',
 		medium: '(max-width: 980px)',
 		small: '(max-width: 736px)',
@@ -16,283 +26,94 @@
 
 	$(function() {
 
-		var	$window = $(window),
+		var $window = $(window),
 			$body = $('body'),
-			$wrapper = $('#wrapper');
+			$header = $('#header');
 
-		// Hack: Enable IE workarounds.
-			if (skel.vars.IEVersion < 12)
-				$body.addClass('ie');
+		// Disable animations/transitions until the page has loaded.
+			$body.addClass('is-loading');
+
+			$window.on('load', function() {
+				$body.removeClass('is-loading');
+			});
 
 		// Touch?
-			if (skel.vars.mobile)
-				$body.addClass('touch');
+			if (skel.vars.mobile) {
 
-		// Transitions supported?
-			if (skel.canUse('transition')) {
+				// Turn on touch mode.
+					$body.addClass('is-touch');
 
-				// Add (and later, on load, remove) "loading" class.
-					$body.addClass('loading');
-
-					$window.on('load', function() {
-						window.setTimeout(function() {
-							$body.removeClass('loading');
-						}, 100);
-					});
-
-				// Prevent transitions/animations on resize.
-					var resizeTimeout;
-
-					$window.on('resize', function() {
-
-						window.clearTimeout(resizeTimeout);
-
-						$body.addClass('resizing');
-
-						resizeTimeout = window.setTimeout(function() {
-							$body.removeClass('resizing');
-						}, 100);
-
-					});
+				// Height fix (mostly for iOS).
+					window.setTimeout(function() {
+						$window.scrollTop($window.scrollTop() + 1);
+					}, 0);
 
 			}
-
-		// Scroll back to top.
-			$window.scrollTop(0);
 
 		// Fix: Placeholder polyfill.
 			$('form').placeholder();
 
-		// Panels.
-			var $panels = $('.panel');
-
-			$panels.each(function() {
-
-				var $this = $(this),
-					$toggles = $('[href="#' + $this.attr('id') + '"]'),
-					$closer = $('<div class="closer" />').appendTo($this);
-
-				// Closer.
-					$closer
-						.on('click', function(event) {
-							$this.trigger('---hide');
-						});
-
-				// Events.
-					$this
-						.on('click', function(event) {
-							event.stopPropagation();
-						})
-						.on('---toggle', function() {
-
-							if ($this.hasClass('active'))
-								$this.triggerHandler('---hide');
-							else
-								$this.triggerHandler('---show');
-
-						})
-						.on('---show', function() {
-
-							// Hide other content.
-								if ($body.hasClass('content-active'))
-									$panels.trigger('---hide');
-
-							// Activate content, toggles.
-								$this.addClass('active');
-								$toggles.addClass('active');
-
-							// Activate body.
-								$body.addClass('content-active');
-
-						})
-						.on('---hide', function() {
-
-							// Deactivate content, toggles.
-								$this.removeClass('active');
-								$toggles.removeClass('active');
-
-							// Deactivate body.
-								$body.removeClass('content-active');
-
-						});
-
-				// Toggles.
-					$toggles
-						.removeAttr('href')
-						.css('cursor', 'pointer')
-						.on('click', function(event) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$this.trigger('---toggle');
-
-						});
-
+		// Prioritize "important" elements on medium.
+			skel.on('+medium -medium', function() {
+				$.prioritize(
+					'.important\\28 medium\\29',
+					skel.breakpoint('medium').active
+				);
 			});
 
-			// Global events.
-				$body
-					.on('click', function(event) {
-
-						if ($body.hasClass('content-active')) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$panels.trigger('---hide');
-
-						}
-
-					});
-
-				$window
-					.on('keyup', function(event) {
-
-						if (event.keyCode == 27
-						&&	$body.hasClass('content-active')) {
-
-							event.preventDefault();
-							event.stopPropagation();
-
-							$panels.trigger('---hide');
-
-						}
-
-					});
-
 		// Header.
-			var $header = $('#header');
 
-			// Links.
-				$header.find('a').each(function() {
+			// Parallax background.
 
-					var $this = $(this),
-						href = $this.attr('href');
+				// Disable parallax on IE (smooth scrolling is jerky), and on mobile platforms (= better performance).
+					if (skel.vars.browser == 'ie'
+					||	skel.vars.mobile)
+						settings.parallax = false;
 
-					// Internal link? Skip.
-						if (!href
-						||	href.charAt(0) == '#')
-							return;
+				if (settings.parallax) {
 
-					// Redirect on click.
-						$this
-							.removeAttr('href')
-							.css('cursor', 'pointer')
-							.on('click', function(event) {
+					skel.on('change', function() {
 
-								event.preventDefault();
-								event.stopPropagation();
+						if (skel.breakpoint('medium').active) {
 
-								window.location.href = href;
+							$window.off('scroll.strata_parallax');
+							$header.css('background-position', 'top left, center center');
 
+						}
+						else {
+
+							$header.css('background-position', 'left 0px');
+
+							$window.on('scroll.strata_parallax', function() {
+								$header.css('background-position', 'left ' + (-1 * (parseInt($window.scrollTop()) / settings.parallaxFactor)) + 'px');
 							});
 
-				});
+						}
 
-		// Footer.
-			var $footer = $('#footer');
+					});
 
-			// Copyright.
-			// This basically just moves the copyright line to the end of the *last* sibling of its current parent
-			// when the "medium" breakpoint activates, and moves it back when it deactivates.
-				$footer.find('.copyright').each(function() {
+				}
 
-					var $this = $(this),
-						$parent = $this.parent(),
-						$lastParent = $parent.parent().children().last();
+		// Main Sections: Two.
 
-					skel
-						.on('+medium', function() {
-							$this.appendTo($lastParent);
-						})
-						.on('-medium', function() {
-							$this.appendTo($parent);
-						});
+			// Lightbox gallery.
+				$window.on('load', function() {
 
-				});
-
-		// Main.
-			var $main = $('#main');
-
-			// Thumbs.
-				$main.children('.thumb').each(function() {
-
-					var	$this = $(this),
-						$image = $this.find('.image'), $image_img = $image.children('img'),
-						x;
-
-					// No image? Bail.
-						if ($image.length == 0)
-							return;
-
-					// Image.
-					// This sets the background of the "image" <span> to the image pointed to by its child
-					// <img> (which is then hidden). Gives us way more flexibility.
-
-						// Set background.
-							$image.css('background-image', 'url(' + $image_img.attr('src') + ')');
-
-						// Set background position.
-							if (x = $image_img.data('position'))
-								$image.css('background-position', x);
-
-						// Hide original img.
-							$image_img.hide();
-
-					// Hack: IE<11 doesn't support pointer-events, which means clicks to our image never
-					// land as they're blocked by the thumbnail's caption overlay gradient. This just forces
-					// the click through to the image.
-						if (skel.vars.IEVersion < 11)
-							$this
-								.css('cursor', 'pointer')
-								.on('click', function() {
-									$image.trigger('click');
-								});
+					$('#two').poptrox({
+						caption: function($a) { return $a.next('h3').text(); },
+						overlayColor: '#2c2c2c',
+						overlayOpacity: 0.85,
+						popupCloserText: '',
+						popupLoaderText: '',
+						selector: '.work-item a.image',
+						usePopupCaption: true,
+						usePopupDefaultStyling: false,
+						usePopupEasyClose: false,
+						usePopupNav: true,
+						windowMargin: (skel.breakpoint('small').active ? 0 : 50)
+					});
 
 				});
-
-			// Poptrox.
-				$main.poptrox({
-					baseZIndex: 20000,
-					caption: function($a) {
-
-						var s = '';
-
-						$a.nextAll().each(function() {
-							s += this.outerHTML;
-						});
-
-						return s;
-
-					},
-					fadeSpeed: 300,
-					onPopupClose: function() { $body.removeClass('modal-active'); },
-					onPopupOpen: function() { $body.addClass('modal-active'); },
-					overlayOpacity: 0,
-					popupCloserText: '',
-					popupHeight: 150,
-					popupLoaderText: '',
-					popupSpeed: 300,
-					popupWidth: 150,
-					selector: '.thumb > a.image',
-					usePopupCaption: true,
-					usePopupCloser: true,
-					usePopupDefaultStyling: false,
-					usePopupForceClose: true,
-					usePopupLoader: true,
-					usePopupNav: true,
-					windowMargin: 50
-				});
-
-				// Hack: Set margins to 0 when 'xsmall' activates.
-					skel
-						.on('-xsmall', function() {
-							$main[0]._poptrox.windowMargin = 50;
-						})
-						.on('+xsmall', function() {
-							$main[0]._poptrox.windowMargin = 0;
-						});
 
 	});
 
