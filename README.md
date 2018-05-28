@@ -1,1 +1,1 @@
-Repository for http://isaacvandor.com/
+Start package for [Bulma](http://bulma.io)
