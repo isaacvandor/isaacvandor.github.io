@@ -57,13 +57,17 @@
                   <article class="tile is-child">
                     <figure class="image">
                       <a>
-                        <img src="images/boatdrone.jpg">
-                        <div class="modal">
-                          <div class="modal-background"></div>
+                        <button class="button is-warning is-pulled-right" onclick="refs.modalEdicion.open()">
+                          <span><img src="images/boatdrone.jpg"></span>
+                        </button>
+                        <div class="modal" id="modalEdicion">
+                          <div onclick="refs.modalEdicion.close()" class="modal-background"></div>
                           <div class="modal-content">
-                            This is some example content for this image
+                            <p class="image is-4by3">
+                              <img src="https://bulma.io/images/placeholders/1280x960.png" alt="">
+                            </p>
                           </div>
-                          <button class="modal-close is-large" aria-label="close"></button>
+                          <button class="modal-close is-large" aria-label="close" onclick="refs.modalEdicion.close()"></button>
                         </div>
                       </a>
                     </figure>
