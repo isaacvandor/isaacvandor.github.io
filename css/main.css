@@ -7118,8 +7118,7 @@ label.panel-block {
         to bottom,
         rgba(0, 0, 0, 0),
         rgba(0, 0, 0, 0.4)
-      ),
-      url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/skyscrapers.jpg);
+      ),;
     width: 400px;
     height: 300px;
     position: relative;
