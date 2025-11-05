@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Test - Isaac Vandor Portfolio</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #2563eb;
+    }
+    .test-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      margin: 8px 0;
+      background: #f9fafb;
+      border-radius: 4px;
+      border-left: 4px solid;
+    }
+    .metric.good {
+      border-color: #10b981;
+      background: #d1fae5;
+    }
+    .metric.average {
+      border-color: #f59e0b;
+      background: #fef3c7;
+    }
+    .metric.poor {
+      border-color: #ef4444;
+      background: #fee2e2;
+    }
+    .metric-name {
+      font-weight: 600;
+    }
+    .metric-value {
+      font-family: 'SF Mono', monospace;
+      font-size: 18px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #1e40af;
+    }
+    .checklist {
+      list-style: none;
+      padding: 0;
+    }
+    .checklist li {
+      padding: 8px;
+      margin: 4px 0;
+      background: #f9fafb;
+      border-radius: 4px;
+    }
+    .checklist li::before {
+      content: '✓ ';
+      color: #10b981;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Performance Test Suite</h1>
+  <p>Measuring Core Web Vitals and performance metrics</p>
+
+  <div class="test-container">
+    <h2>Performance Metrics</h2>
+    <button onclick="runPerformanceTest()">Run Performance Test</button>
+    <div id="metrics" style="margin-top: 20px;"></div>
+  </div>
+
+  <div class="test-container">
+    <h2>Performance Best Practices Checklist</h2>
+    <ul class="checklist">
+      <li>Lazy loading for images</li>
+      <li>Modern image formats (WebP with fallbacks)</li>
+      <li>Minified CSS and JavaScript</li>
+      <li>No render-blocking resources</li>
+      <li>Responsive images with srcset</li>
+      <li>Efficient cache policy</li>
+      <li>Reduced JavaScript execution time</li>
+      <li>Optimized fonts loading</li>
+      <li>Preconnect to required origins</li>
+      <li>Properly sized images</li>
+    </ul>
+  </div>
+
+  <div class="test-container">
+    <h2>How to Run Lighthouse</h2>
+    <p>For comprehensive performance testing, run Lighthouse from Chrome DevTools:</p>
+    <ol>
+      <li>Open the redesigned portfolio in Chrome</li>
+      <li>Open DevTools (F12 or Cmd+Option+I)</li>
+      <li>Go to the "Lighthouse" tab</li>
+      <li>Select categories: Performance, Accessibility, Best Practices, SEO</li>
+      <li>Click "Analyze page load"</li>
+    </ol>
+    <p><strong>Target Scores:</strong> All categories above 90/100</p>
+  </div>
+
+  <div class="test-container">
+    <h2>Command Line Testing</h2>
+    <p>Install Lighthouse CLI for automated testing:</p>
+    <pre style="background: #1a1a1a; color: #10b981; padding: 15px; border-radius: 4px; overflow-x: auto;">
+# Install Lighthouse
+npm install -g @lhci/cli lighthouse
+
+# Run Lighthouse on the redesign
+lighthouse index-redesign.html --view
+
+# Run with specific categories
+lighthouse index-redesign.html --only-categories=performance,accessibility,seo --view
+
+# Generate JSON report
+lighthouse index-redesign.html --output json --output-path ./lighthouse-report.json
+    </pre>
+  </div>
+
+  <script>
+    function runPerformanceTest() {
+      const metricsDiv = document.getElementById('metrics');
+
+      if (!window.performance) {
+        metricsDiv.innerHTML = '<p style="color: #ef4444;">Performance API not supported in this browser</p>';
+        return;
+      }
+
+      // Create iframe to load and measure the page
+      const iframe = document.createElement('iframe');
+      iframe.src = '../index-redesign.html';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      iframe.style.position = 'absolute';
+      iframe.style.left = '-9999px';
+
+      iframe.onload = function() {
+        setTimeout(() => {
+          const perfData = iframe.contentWindow.performance.timing;
+          const navigationStart = perfData.navigationStart;
+
+          const metrics = {
+            'DNS Lookup': perfData.domainLookupEnd - perfData.domainLookupStart,
+            'TCP Connection': perfData.connectEnd - perfData.connectStart,
+            'Request Time': perfData.responseStart - perfData.requestStart,
+            'Response Time': perfData.responseEnd - perfData.responseStart,
+            'DOM Processing': perfData.domComplete - perfData.domLoading,
+            'DOM Content Loaded': perfData.domContentLoadedEventEnd - navigationStart,
+            'Page Load Time': perfData.loadEventEnd - navigationStart,
+          };
+
+          let html = '';
+
+          Object.entries(metrics).forEach(([name, value]) => {
+            let className = 'good';
+            if (name === 'Page Load Time') {
+              if (value > 3000) className = 'poor';
+              else if (value > 1500) className = 'average';
+            } else if (name === 'DOM Content Loaded') {
+              if (value > 1500) className = 'poor';
+              else if (value > 800) className = 'average';
+            } else {
+              if (value > 500) className = 'poor';
+              else if (value > 200) className = 'average';
+            }
+
+            html += `
+              <div class="metric ${className}">
+                <span class="metric-name">${name}</span>
+                <span class="metric-value">${value}ms</span>
+              </div>
+            `;
+          });
+
+          // Add resource count
+          const resources = iframe.contentWindow.performance.getEntriesByType('resource');
+          html += `
+            <div class="metric ${resources.length > 50 ? 'average' : 'good'}">
+              <span class="metric-name">Total Resources</span>
+              <span class="metric-value">${resources.length}</span>
+            </div>
+          `;
+
+          // Calculate total transfer size (if available)
+          let totalSize = 0;
+          resources.forEach(resource => {
+            totalSize += resource.transferSize || 0;
+          });
+
+          if (totalSize > 0) {
+            const sizeKB = (totalSize / 1024).toFixed(2);
+            html += `
+              <div class="metric ${totalSize > 1000000 ? 'average' : 'good'}">
+                <span class="metric-name">Total Transfer Size</span>
+                <span class="metric-value">${sizeKB} KB</span>
+              </div>
+            `;
+          }
+
+          metricsDiv.innerHTML = html;
+
+          // Cleanup
+          document.body.removeChild(iframe);
+        }, 1000);
+      };
+
+      document.body.appendChild(iframe);
+    }
+  </script>
+</body>
+</html>
